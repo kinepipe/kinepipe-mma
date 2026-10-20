@@ -1,5 +1,5 @@
 ---
-title: "Control de Cambios y Registro de Actividad: KineBiomech AI Studio"
+title: "Control de Cambios y Registro de Actividad: KinePipe MMA (Markless Motion Analyser)"
 document_type: "changelog"
 project_type: "software"
 last_updated: "2026-10-20"
@@ -7,11 +7,12 @@ version: "1.5.0"
 status: "activo"
 ---
 
-# Control de Cambios y Registro de Actividad: KineBiomech AI Studio
+# Control de Cambios y Registro de Actividad: KinePipe MMA
 
-Suite de análisis biomecánico, cinemática clínica 2D y visión artificial (Sports2D, Pose2Sim, DeepLabCut), compatible con el ecosistema Kinovea (.KVA) y OpenSim (.TRC / .MOT / .OSIM).
+Suite de análisis biomecánico clínico sin marcadores (Markless Motion Analyser) con telemetría en tiempo real, cinemática 2D y exportación compatible con el ecosistema Kinovea (.KVA) y OpenSim (.TRC / .MOT / .OSIM).
 
-Dirección y Desarrollo Científico: **Klgo. Felipe Vargas Ríos** (`@kinepipe`)  
+Dirección y Desarrollo Clínico: **Klgo. Felipe Vargas Ríos** (`@kinepipe`)  
+Repositorio Oficial: [https://github.com/kinepipe/kinepipe-mma](https://github.com/kinepipe/kinepipe-mma)  
 Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 
 ---
@@ -21,6 +22,75 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 2. Resolver rutas relativas siempre a partir de la raíz de esta carpeta de trabajo (`./`).
 3. Al recibir una nueva instrucción en este directorio, consultar prioritariamente el último estado registrado en la sesión superior y el backlog activo.
 4. No alterar ni sobrescribir las notas técnicas históricas ya consolidadas en sesiones precedentes.
+
+---
+
+## [2026-10-20] - KinePipe MMA v1.5.0: Lanzamiento Oficial Open Source en GitHub, Arquitectura de Distribución Dual y Release Binaria v1.5.0
+
+> [!SUMMARY]
+> **Síntesis Ejecutiva:** Consolidación formal de la suite de software como **KinePipe MMA (Markless Motion Analyser)**, implementando una arquitectura de distribución dual (Opción Web vía navegador y Opción Escritorio Nativo vía Edge WebView2/pywebview), empaquetado autónomo en `.zip` de 896 KB para usuarios finales, publicación del repositorio de código abierto en GitHub ([`kinepipe/kinepipe-mma`](https://github.com/kinepipe/kinepipe-mma)) y lanzamiento de la primera Release oficial descargable `v1.5.0`.
+
+### 1. Componentes y Artefactos Intervenidos
+
+| Componente / Módulo | Ruta Relativa | Tipo de Cambio | Impacto / Estado |
+| :--- | :--- | :--- | :--- |
+| **Lanzador Ventana Nativa** | [`./desktop_app.py`](./desktop_app.py) | Creado | Wrapper desktop con `pywebview` sobre Edge WebView2, tamaño fijo de 1440x900 px, icono y menú nativo. |
+| **Lanzador Escritorio Batch** | [`./run_desktop.bat`](./run_desktop.bat) | Creado | Script de orquestación dual que levanta uvicorn en segundo plano y ejecuta la ventana de escritorio. |
+| **Lanzador Silencioso VBScript** | [`./KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) | Creado | Ejecutable silencioso para el usuario final: oculta la consola negra de Windows CMD en arranque. |
+| **Lanzador Web / Navegador** | [`./run_app.bat`](./run_app.bat) | Modificado | Auto-bootstrap con chequeo de dependencias, arranque de API y apertura del navegador predeterminado. |
+| **Script de Instalación Inicial** | [`./install.bat`](./install.bat) | Modificado | Creación de entorno virtual `.venv`, instalación de dependencias y validación de componentes. |
+| **Generador de Paquete Release** | [`./package_release.bat`](./package_release.bat) | Creado | Automatización de empaquetado para distribución: excluye `.venv`, videos clínicos privados y node_modules. |
+| **Paquete Binario de Distribución** | [`./release/KinePipe-MMA-v1.5.0-Windows.zip`](./release/KinePipe-MMA-v1.5.0-Windows.zip) | Generado | Archivo comprimido ultra ligero (896 KB) listo para descarga directa en GitHub Releases. |
+| **Licencia de Código Abierto** | [`./LICENSE`](./LICENSE) | Creado | Licencia estándar MIT con Copyright (c) 2026 Klgo. Felipe Vargas Ríos (`@kinepipe`). |
+| **Control de Ignorados Git** | [`.gitignore`](./.gitignore) | Optimizado | Protección estricta de videos de pacientes (`data/uploads/`, `video testing/`), `.venv`, `dist/` y `release/`. |
+| **Repositorio Git y Remoto** | [`./.git`](./.git) | Inicializado / Vinculado | Rama `main` creada y sincronizada con el origen `https://github.com/kinepipe/kinepipe-mma.git`. |
+| **Modal Acerca de y Branding** | [`./frontend/src/components/AboutModal.jsx`](./frontend/src/components/AboutModal.jsx) | Modificado | Denominación unificada `KinePipe MMA`, versión 1.5.0 y tarjetas de capacidades clínicas. |
+| **Barra Superior (Header)** | [`./frontend/src/components/Header.jsx`](./frontend/src/components/Header.jsx) | Modificado | Marca formal `KINEPIPE MMA STUDIO` y chip de autoría `@kinepipe`. |
+| **Servidor FastAPI Backend** | [`./backend/app/main.py`](./backend/app/main.py) | Modificado | Título oficial `KinePipe MMA (Markless Motion Analyser)` y endpoints enriquecidos. |
+
+### 2. Detalle de Realizaciones y Cambios
+
+- **Consolidación de Identidad y Marca Formal:**
+  - Se formalizó el nombre definitivo de la herramienta: **KinePipe MMA** (*Markless Motion Analyser*), sintetizando su propósito de análisis biomecánico sin marcadores corporales.
+  - Se actualizaron todos los puntos de contacto en el frontend ([`AboutModal.jsx`](./frontend/src/components/AboutModal.jsx), [`Header.jsx`](./frontend/src/components/Header.jsx), [`ReportModal.jsx`](./frontend/src/components/ReportModal.jsx), [`index.html`](./frontend/index.html)) y backend ([`main.py`](./backend/app/main.py), [`routes_export.py`](./backend/app/api/routes_export.py)).
+  - Se registró la autoría profesional de **Klgo. Felipe Vargas Ríos** (`@kinepipe`) en el archivo [`LICENSE`](./LICENSE), encabezados de exportación OpenSim `.mot` y timbres de reportes clínicos imprimibles.
+
+- **Estrategia y Arquitectura de Distribución Dual:**
+  - **Opción A (Navegador Web):** Mantener la capacidad de abrir la suite en Chrome/Edge mediante [`run_app.bat`](./run_app.bat), ideal para entornos multi-pantalla o visualización web clásica.
+  - **Opción B (Ventana de Escritorio Nativa):** Implementación de [`desktop_app.py`](./desktop_app.py) utilizando `pywebview` sobre el motor nativo de Windows (Microsoft Edge Chromium WebView2). Proporciona una experiencia de aplicación de escritorio pura, sin barra de direcciones, sin pestañas del navegador y con atajos de ventana estándar.
+  - **Arranque Silencioso con VBScript:** Creación de [`KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) para ejecutar el entorno en modo `WScript.CreateObject("WScript.Shell").Run ..., 0, False`, eliminando la ventana negra de consola CMD que incomoda a los usuarios no técnicos.
+
+- **Empaquetado y Distribución Limpia (Zero Bloat):**
+  - Implementación del script de empaquetado [`package_release.bat`](./package_release.bat) con PowerShell Zip.
+  - Generación de [`release/KinePipe-MMA-v1.5.0-Windows.zip`](./release/KinePipe-MMA-v1.5.0-Windows.zip) con un peso final de **solo 896 KB** (menos de 1 MB).
+  - Higiene estricta de datos: el paquete contiene el código fuente de backend y frontend compilado (`dist/`), pero excluye por completo los gigabytes del entorno virtual `.venv`, las carpetas `node_modules` y todo material sensible de pruebas clínicas (`video testing/` y `data/uploads/`).
+  - El usuario que descargue el `.zip` solo debe ejecutar [`install.bat`](./install.bat) una sola vez (o directamente [`run_desktop.bat`](./run_desktop.bat) / [`KinePipe-MMA.vbs`](./KinePipe-MMA.vbs), los cuales instalan dependencias automáticamente si el `.venv` no existe).
+
+- **Publicación en GitHub y Resolución de Conflictos de Sistema:**
+  - Diagnóstico y resolución del error `fatal: git show-ref: bad ref refs/tags/desktop.ini` en GitHub Desktop: se identificó que el software intentaba cargar un repositorio previo sincronizado en Google Drive (`K:\`), el cual había inyectado archivos ocultos `desktop.ini` en las carpetas de referencias Git. Se realizó el saneamiento de las referencias y archivos `.lock` corruptos.
+  - Inicialización limpia de Git en rama `main`, commit fundacional `4e8869f` y vinculación remota a [`https://github.com/kinepipe/kinepipe-mma.git`](https://github.com/kinepipe/kinepipe-mma.git).
+  - Push exitoso de todo el árbol de trabajo a GitHub.
+  - Acompañamiento en la publicación de la Release oficial `v1.5.0` con la descripción clínica y el binario `.zip` descargable adjunto.
+
+### 3. Nota Técnica y Criterios Arquitectónicos (`mdmake`)
+
+> [!NOTE]
+> **Fundamentación del Motor WebView2 Nativo vs Electron:** En lugar de empaquetar un binario de Electron de más de 180 MB para lograr una ventana de escritorio nativa, se adoptó `pywebview` enlazado con el motor Evergreen de Edge WebView2 preinstalado en Windows 10/11. Esto permitió mantener el peso de descarga del software en menos de 1 MB (896 KB), garantizando un consumo mínimo de RAM y compatibilidad directa con el backend FastAPI local a través de IPC loopback (`127.0.0.1:8000`).
+
+> [!IMPORTANT]
+> **Privacidad y Cumplimiento Ético de Datos:** La configuración defensiva en [`.gitignore`](./.gitignore) previene estrictamente la subida accidental de videos de pacientes o evaluados a GitHub (`video testing/`, `data/uploads/`, `*.mp4`, `*.mov`). Los repositorios de código abierto deben mantener una separación absoluta entre el motor algorítmico y los registros de imágenes clínicas reales, garantizando el cumplimiento de normas de protección de datos personales en salud.
+
+### 4. 📌 Pendientes y Próximos Pasos (Backlog)
+
+- [x] **Completado:** Consolidación de identidad formal KinePipe MMA (Markless Motion Analyser).
+- [x] **Completado:** Modal Acerca de con ficha técnica, badges clínicos y autoría Klgo. Felipe Vargas Ríos (@kinepipe).
+- [x] **Completado:** Soporte dual para ejecución en Navegador Web (`run_app.bat`) y Escritorio Nativo (`KinePipe-MMA.vbs` / `run_desktop.bat`).
+- [x] **Completado:** Script de empaquetado y generación de archivo binario `release/KinePipe-MMA-v1.5.0-Windows.zip`.
+- [x] **Completado:** Publicación del repositorio oficial en GitHub y release v1.5.0 con binario descargable.
+- [ ] **Alta:** Configuración de GitHub Actions (CI/CD) para auto-compilar el paquete `.zip` en cada nuevo tag de versión.
+- [ ] **Media:** Generación de informe PDF clínico consolidado con los subpaneles cinemáticos seleccionados.
+- [ ] **Media:** Exportación e importación de curvas cinemáticas en formato estándar C3D.
+- [ ] **Baja:** Cálculo del índice de simetría bilateral de marcha (GDI / Robinson Symmetry Index).
 
 ---
 
