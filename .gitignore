@@ -1,0 +1,45 @@
+# Python virtual environments & bytecode
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+
+# Node & Frontend dependencies & artifacts
+frontend/node_modules/
+frontend/.pnpm-store/
+frontend/dist/
+frontend/.cache/
+.eslintcache
+
+# User Uploads & Temporary Data (Protect Patient/Subject Privacy)
+data/uploads/*
+!data/uploads/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+video testing/
+
+# PyTorch / Large Model Weights (if downloaded dynamically)
+*.pt.tmp
+*.onnx.tmp
+
+# OS & Editor generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Releases output folder
+release/
+
+# Antigravity / Gemini temporary files
+.agents/
+.gemini/
+scratch/
