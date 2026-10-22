@@ -76,9 +76,10 @@ def test_kva_export_and_import():
 
     kva_xml = export_to_kva(session)
     assert "<KinoveaVideoAnalysis" in kva_xml
-    assert "<KeyImage" in kva_xml
+    assert "<Keyframe" in kva_xml
     assert "Despegue" in kva_xml
-    assert 'Type="TrackablePath"' in kva_xml
+    assert "<Track " in kva_xml
+    assert "<TrackPointList" in kva_xml
 
     parsed = parse_kva(kva_xml)
     assert parsed["fps"] == 60.0

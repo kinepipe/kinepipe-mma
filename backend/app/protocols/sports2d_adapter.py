@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import List, Dict, Any, Tuple, Optional
 
 from .base_tracker import BaseTracker
+from ..core.config import PROJECT_ROOT
 from ..core.schemas import ModelCapabilityInfo, VideoMetadata, TrackingRequest, FrameData, Keypoint
 from ..core.kinematics_math import (
     calculate_angle_2d,
@@ -22,7 +23,9 @@ class Sports2DAdapter(BaseTracker):
         if cls._yolo_model is None:
             try:
                 from ultralytics import YOLO
-                cls._yolo_model = YOLO("yolov8n-pose.pt")
+                model_file = PROJECT_ROOT / "yolov8n-pose.pt"
+                target_weights = str(model_file) if model_file.exists() else "yolov8n-pose.pt"
+                cls._yolo_model = YOLO(target_weights)
             except Exception as e:
                 print(f"[Sports2DAdapter] Error loading YOLOv8-pose: {e}")
         return cls._yolo_model
@@ -48,7 +51,7 @@ class Sports2DAdapter(BaseTracker):
             ],
             recommended_for="Evaluación de marcha, carrera, saltos y clínica del movimiento en cualquier entorno",
             gpu_support=True,
-            is_installed=True,
+            is_installed=self.is_available(),
             install_command="uv pip install ultralytics",
             icon="Activity"
         )
@@ -57,7 +60,7 @@ class Sports2DAdapter(BaseTracker):
         try:
             from ultralytics import YOLO
             return True
-        except ImportError:
+        except (ImportError, Exception):
             return False
 
     def process_video(
@@ -70,12 +73,18 @@ class Sports2DAdapter(BaseTracker):
         Runs real YOLOv8-Pose neural tracking over video frames.
         Tracks anatomical joints with sub-pixel precision and filters via Butterworth.
         """
+        model = self.get_yolo()
+        if model is None:
+            raise RuntimeError(
+                "El motor de visión neuronal YOLOv8-pose (ultralytics) no se encuentra instalado o no pudo inicializarse. "
+                "Por favor ejecute: uv pip install ultralytics"
+            )
+
         scale_m_per_px = request.calibration.scale_m_per_px if request.calibration else 0.005
         cutoff_hz = request.butterworth_cutoff_hz or 6.0
         fps = metadata.fps or 30.0
         dt = 1.0 / fps
 
-        model = self.get_yolo()
         cap = cv2.VideoCapture(str(video_path))
         
         if request.roi_start_time_s is not None and request.roi_start_time_s >= 0:

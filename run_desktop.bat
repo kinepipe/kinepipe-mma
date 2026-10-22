@@ -32,6 +32,18 @@ if errorlevel 1 (
     )
 )
 
-REM 3. Run desktop native window
+REM 3. Check if ultralytics is installed
+.venv\Scripts\python -c "import ultralytics" 2>nul
+if errorlevel 1 (
+    echo [INFO] Instalando motor de vision neuronal YOLOv8-pose (ultralytics)...
+    where uv >nul 2>nul
+    if not errorlevel 1 (
+        uv pip install ultralytics --python .venv\Scripts\python.exe
+    ) else (
+        .venv\Scripts\python -m pip install ultralytics
+    )
+)
+
+REM 4. Run desktop native window
 echo [INFO] Abriendo KinePipe MMA en ventana nativa de escritorio...
 .venv\Scripts\python desktop_app.py

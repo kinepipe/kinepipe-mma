@@ -2,8 +2,8 @@
 title: "Control de Cambios y Registro de Actividad: KinePipe MMA (Markless Motion Analyser)"
 document_type: "changelog"
 project_type: "software"
-last_updated: "2026-10-20"
-version: "1.5.0"
+last_updated: "2026-10-21"
+version: "1.5.1"
 status: "activo"
 ---
 
@@ -22,6 +22,63 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 2. Resolver rutas relativas siempre a partir de la raíz de esta carpeta de trabajo (`./`).
 3. Al recibir una nueva instrucción en este directorio, consultar prioritariamente el último estado registrado en la sesión superior y el backlog activo.
 4. No alterar ni sobrescribir las notas técnicas históricas ya consolidadas en sesiones precedentes.
+
+---
+
+## [2026-10-21] - KinePipe MMA v1.5.1: Hotfix de Portabilidad Multi-Equipo, Dependencia YOLOv8-pose y Parche Proactor Asyncio Windows (WinError 10054)
+
+> [!SUMMARY]
+> **Síntesis Ejecutiva:** Resolución integral de las dos incidencias identificadas tras el despliegue e instalación en un equipo Windows secundario (`informe_de_errores_kinepipe_mma.md`): (1) Inclusión de la dependencia de visión artificial `ultralytics>=8.1.0` en [`requirements.txt`](./backend/requirements.txt) junto con auto-detección/auto-instalación en los scripts de arranque (`run_app.bat` y `run_desktop.bat`) y empaquetado del modelo de pesos `yolov8n-pose.pt` en la release portable; y (2) Implementación de un parche defensivo para el bucle de eventos `asyncio` (`_ProactorBasePipeTransport`) que silencia la interrupción inofensiva `WinError 10054` producida por el reproductor HTML5 al cancelar peticiones `206 Partial Content` durante el streaming y scrubbing de video.
+
+### 1. Componentes y Artefactos Intervenidos
+
+| Componente / Módulo | Ruta Relativa | Tipo de Cambio | Impacto / Estado |
+| :--- | :--- | :--- | :--- |
+| **Lista de Dependencias Backend** | [`./backend/requirements.txt`](./backend/requirements.txt) | Modificado | Incorpora `ultralytics>=8.1.0` para garantizar que `install.bat` instale YOLOv8-pose y PyTorch en equipos limpios. |
+| **Servidor FastAPI Backend** | [`./backend/app/main.py`](./backend/app/main.py) | Modificado | Inyección del parche defensivo de `asyncio` Windows en el arranque del servidor para interceptar `WinError 10054`. |
+| **Lanzador Ventana de Escritorio** | [`./desktop_app.py`](./desktop_app.py) | Modificado | Parche defensivo de `asyncio` aplicado antes de iniciar el hilo de Uvicorn y la ventana Edge WebView2. |
+| **Adaptador Biomecánico Sports2D** | [`./backend/app/protocols/sports2d_adapter.py`](./backend/app/protocols/sports2d_adapter.py) | Modificado | Detección robusta de ruta `yolov8n-pose.pt`, chequeo dinámico `is_available()` y excepción explicativa con sugerencia de instalación. |
+| **Lanzador Web / Navegador** | [`./run_app.bat`](./run_app.bat) | Modificado | Verificación y auto-instalación silenciosa de `ultralytics` si el entorno virtual preexistente carece de él. |
+| **Lanzador Escritorio Batch** | [`./run_desktop.bat`](./run_desktop.bat) | Modificado | Chequeo preventivo de `ultralytics` antes de instanciar la interfaz nativa `desktop_app.py`. |
+| **Empaquetador de Distribución** | [`./package_release.bat`](./package_release.bat) | Modificado | Copia automática del archivo de pesos `.pt` (`yolov8n-pose.pt`) a la carpeta de staging de release para soporte offline. |
+| **Pruebas de Integración KVA** | [`./backend/tests/test_kva.py`](./backend/tests/test_kva.py) | Corregido | Sincronización de aserciones XML con la versión Kinovea 2025.2 (`<Keyframe>`, `<Track>`, `<TrackPointList>`). |
+
+### 2. Detalle de Realizaciones y Cambios
+
+- **Resolución INC-01: Dependencia `ultralytics` y Disponibilidad del Modelo YOLOv8-pose:**
+  - Se diagnosticó que el entorno original de desarrollo contaba con `ultralytics` instalado ad-hoc, pero no figuraba en [`backend/requirements.txt`](./backend/requirements.txt), provocando que instalaciones limpias con [`install.bat`](./install.bat) en otros equipos fallaran al importar `ultralytics` en `Sports2DAdapter`.
+  - Se agregó `ultralytics>=8.1.0` a la especificación de dependencias.
+  - En [`run_app.bat`](./run_app.bat) y [`run_desktop.bat`](./run_desktop.bat) se implementó un chequeo preventivo con `python -c "import ultralytics"` que auto-instala la librería de inmediato si el `.venv` fue creado previamente sin ella, eliminando fricción para el usuario final.
+  - En [`sports2d_adapter.py`](./backend/app/protocols/sports2d_adapter.py) se configuró la carga de pesos buscando prioritariamente en `PROJECT_ROOT / "yolov8n-pose.pt"` antes de delegar en el nombre genérico, se conectó la propiedad `is_installed=self.is_available()` y se agregó una excepción explícita informativa si se intenta procesar video sin el motor neuronal.
+  - Se actualizó [`package_release.bat`](./package_release.bat) para empaquetar `yolov8n-pose.pt` (6.8 MB) directamente en el ZIP descargable, habilitando inferencia instantánea sin requerir descarga en el primer uso.
+
+- **Resolución INC-02: Supresión de `WinError 10054` en Streaming de Video:**
+  - Se determinó que el error `ConnectionResetError: [WinError 10054]` en `_ProactorBasePipeTransport._call_connection_lost` ocurre cuando el reproductor `<video>` HTML5 cancela conexiones de streaming (`206 Partial Content`) durante la navegación temporal (*scrubbing*) o el llenado de búfer.
+  - Se integró la función interceptora `_silenciar_reset_conexion` en el arranque de [`backend/app/main.py`](./backend/app/main.py) y [`desktop_app.py`](./desktop_app.py), evitando que la consola se sature de trazas de error sin afectar la estabilidad ni el cierre natural de conexiones.
+
+- **Verificación de Pruebas Automatizadas:**
+  - Ejecución de la suite completa de pruebas unitarias (`backend/tests/`), validando 6/6 tests exitosos (cinemática 2D, filtrado Butterworth, ángulos articulares y exportación Kinovea KVA 2025.2).
+
+### 3. Nota Técnica y Criterios Arquitectónicos (`mdmake`)
+
+> [!NOTE]
+> **Fundamentación del Parche de Socket Proactor en Windows:** En Python 3.10 bajo Windows, el bucle asíncrono `ProactorEventLoop` utiliza puertos de finalización de E/S (IOCP). Cuando un cliente HTTP cierra un socket antes de que el servidor termine de enviar un rango parcial de video (comportamiento estándar del buffering de Chromium y navegadores modernos), IOCP notifica la desconexión abrupta. `_call_connection_lost` intenta ejecutar `shutdown(socket.SHUT_RDWR)` en un socket ya invalidado por el sistema operativo, disparando `WinError 10054`. La envoltura defensiva con `try...except (ConnectionResetError, RuntimeError, OSError)` atrapa la condición de carrera a nivel de transporte, preservando una consola clínica limpia y silenciosa.
+
+> [!IMPORTANT]
+> **Autonomía Offline del Modelo Neuronal:** La inclusión de `yolov8n-pose.pt` en el empaquetado release garantiza que clínicas, consultorios deportivos o laboratorios docentes con conectividad a internet restringida puedan ejecutar el análisis biomecánico desde el primer minuto sin descargas satelitales obligatorias.
+
+### 4. 📌 Pendientes y Próximos Pasos (Backlog)
+
+- [x] **Completado:** Incorporar `ultralytics` a `requirements.txt` y validar instalación automática en scripts batch.
+- [x] **Completado:** Parchear `WinError 10054` en transporte Proactor de asyncio en `main.py` y `desktop_app.py`.
+- [x] **Completado:** Asegurar inclusión de pesos `yolov8n-pose.pt` en la generación de release (`package_release.bat`).
+- [x] **Completado:** Verificación exitosa de la suite de pruebas unitarias backend (`6/6 passed`).
+- [ ] **Alta:** Re-generar paquete `release/KinePipe-MMA-v1.5.1-Windows.zip` y actualizar release en GitHub con los scripts corregidos.
+- [ ] **Alta:** Probar la instalación completa en un entorno limpio sin internet para verificar la carga offline de los pesos de pose.
+- [ ] **Media:** Configuración de GitHub Actions (CI/CD) para auto-compilar el paquete `.zip` en cada nuevo tag de versión.
+- [ ] **Media:** Generación de informe PDF clínico consolidado con los subpaneles cinemáticos seleccionados.
+- [ ] **Media:** Exportación e importación de curvas cinemáticas en formato estándar C3D.
+- [ ] **Baja:** Cálculo del índice de simetría bilateral de marcha (GDI / Robinson Symmetry Index).
 
 ---
 

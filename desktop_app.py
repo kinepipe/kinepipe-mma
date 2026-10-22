@@ -7,9 +7,30 @@ Author: Klgo. Felipe Vargas Ríos (@kinepipe)
 import sys
 import time
 import threading
+from functools import wraps
 import uvicorn
 import webview
 import urllib.request
+
+# Parche defensivo para Windows ante peticiones 206 Partial Content (WinError 10054)
+if sys.platform == "win32":
+    try:
+        from asyncio.proactor_events import _ProactorBasePipeTransport
+
+        def _silenciar_reset_conexion(func):
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                try:
+                    return func(self, *args, **kwargs)
+                except (ConnectionResetError, RuntimeError, OSError):
+                    pass
+            return wrapper
+
+        _ProactorBasePipeTransport._call_connection_lost = _silenciar_reset_conexion(
+            _ProactorBasePipeTransport._call_connection_lost
+        )
+    except Exception:
+        pass
 
 HOST = "127.0.0.1"
 PORT = 8000

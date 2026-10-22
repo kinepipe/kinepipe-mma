@@ -25,7 +25,7 @@ export default function AboutModal({ isOpen, onClose, appName = "KinePipe MMA" }
               <h2 className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
                 <span>KinePipe <span className="text-biomech-primary">MMA</span></span>
                 <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-biomech-primary/10 text-biomech-primary border border-biomech-primary/30">
-                  v1.5.0
+                  v1.5.1
                 </span>
               </h2>
               <p className="text-xs text-biomech-secondary font-medium tracking-wide">
