@@ -15,7 +15,7 @@ from ..core.schemas import (
     GaitAnalysisResult,
     SquatAnalysisResult
 )
-from ..core.video_engine import get_video_metadata
+from ..core.video_engine import get_video_metadata, find_video_path
 from ..core.kinematics_math import analyze_vertical_jump, analyze_gait, analyze_squat
 from ..protocols.sports2d_adapter import Sports2DAdapter
 from ..protocols.pose2sim_adapter import Pose2SimAdapter
@@ -205,17 +205,17 @@ def run_tracking(request: TrackingRequest):
         raise HTTPException(status_code=400, detail=f"Modelo no reconocido: {request.model_id}")
 
     video_id = request.video_id
-    matches = list(UPLOADS_DIR.glob(f"{video_id}*")) + list(SAMPLE_DIR.glob(f"{video_id}*"))
-    video_matches = [m for m in matches if m.suffix.lower() in [".mp4", ".mov", ".avi", ".webm"]]
+    target_video = find_video_path(video_id)
     
-    if not video_matches:
-        sample_path = SAMPLE_DIR / "sample_cmj_jump.mp4"
-        if sample_path.exists():
-            target_video = sample_path
+    if not target_video or not target_video.exists():
+        if video_id in ["sample", "sample_cmj_jump"]:
+            sample_path = SAMPLE_DIR / "sample_cmj_jump.mp4"
+            if sample_path.exists():
+                target_video = sample_path
+            else:
+                raise HTTPException(status_code=404, detail="Archivo de video no encontrado")
         else:
-            raise HTTPException(status_code=404, detail="Archivo de video no encontrado")
-    else:
-        target_video = video_matches[0]
+            raise HTTPException(status_code=404, detail=f"Archivo de video no encontrado: {video_id}")
 
     metadata = get_video_metadata(target_video)
     calibration = request.calibration or CalibrationData()

@@ -1,32 +1,9 @@
-import sys
-import os
-from pathlib import Path
-from functools import wraps
-
-# Parche defensivo para Windows (Python 3.10) ante streaming de video 206 Partial Content (WinError 10054)
-if sys.platform == "win32":
-    try:
-        from asyncio.proactor_events import _ProactorBasePipeTransport
-
-        def _silenciar_reset_conexion(func):
-            @wraps(func)
-            def wrapper(self, *args, **kwargs):
-                try:
-                    return func(self, *args, **kwargs)
-                except (ConnectionResetError, RuntimeError, OSError):
-                    pass
-            return wrapper
-
-        _ProactorBasePipeTransport._call_connection_lost = _silenciar_reset_conexion(
-            _ProactorBasePipeTransport._call_connection_lost
-        )
-    except Exception:
-        pass
-
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from pathlib import Path
+import os
 
 from .core.config import CORS_ORIGINS, FRONTEND_DIST_DIR
 from .api import (
@@ -65,6 +42,8 @@ if FRONTEND_DIST_DIR.exists():
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        if full_path.startswith("api"):
+            raise HTTPException(status_code=404, detail="Endpoint API no encontrado")
         file_path = FRONTEND_DIST_DIR / full_path
         if file_path.exists() and file_path.is_file():
             return FileResponse(str(file_path))

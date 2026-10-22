@@ -257,6 +257,7 @@ export default function App() {
       alert('Error al subir video: ' + err.message);
     } finally {
       setIsProcessing(false);
+      if (e.target) e.target.value = '';
     }
   };
 

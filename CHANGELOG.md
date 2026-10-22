@@ -56,13 +56,28 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
   - Se determinó que el error `ConnectionResetError: [WinError 10054]` en `_ProactorBasePipeTransport._call_connection_lost` ocurre cuando el reproductor `<video>` HTML5 cancela conexiones de streaming (`206 Partial Content`) durante la navegación temporal (*scrubbing*) o el llenado de búfer.
   - Se integró la función interceptora `_silenciar_reset_conexion` en el arranque de [`backend/app/main.py`](./backend/app/main.py) y [`desktop_app.py`](./desktop_app.py), evitando que la consola se sature de trazas de error sin afectar la estabilidad ni el cierre natural de conexiones.
 
+- **Resolución INC-03: Corrección de Sintaxis Batch en Lanzadores (`run_desktop.bat` / `run_app.bat`):**
+  - Se eliminaron paréntesis no escapados en comandos `echo` dentro de bloques `if errorlevel 1 (...)`, los cuales provocaban que `cmd.exe` abortara la ejecución instantáneamente arrojando `No se esperaba ... en este momento`.
+  - Se agregó `pause` al final de los scripts para garantizar visibilidad de la consola en caso de excepciones.
+  - Se fijó el directorio de trabajo en [`KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) mediante `fso.GetParentFolderName(WScript.ScriptFullName)`.
+
+- **Resolución INC-04: Búsqueda Literal de Videos y Supresión del Fallback Silencioso a Sample:**
+  - Se identificó que `Path.glob(f"{video_id}*")` fallaba al procesar nombres de video con corchetes `[...]` (frecuentes en descargas de YouTube) o paréntesis, tratándolos erróneamente como clases de caracteres regex.
+  - Al fallar la búsqueda, tanto el streaming como el tracking caían silenciosamente en `sample_cmj_jump.mp4` (video sintético negro con líneas de palitos donde YOLOv8 no detectaba articulaciones, produciendo "video vacío y análisis vacío").
+  - Se implementaron las funciones [`find_video_path`](./backend/app/core/video_engine.py) y [`find_thumbnail_path`](./backend/app/core/video_engine.py) basadas en iteración y comparación literal de cadenas, garantizando coincidencia exacta por stem, nombre o prefijo UUID.
+  - Se restringió el fallback a `sample_cmj_jump.mp4` únicamente cuando `video_id` sea explícitamente `"sample"` o `"sample_cmj_jump"`.
+
+- **Resolución INC-05: Codificación de URLs y Reset de Input en Frontend:**
+  - En [`frontend/src/services/api.js`](./frontend/src/services/api.js), se envolvieron los `video_id` con `encodeURIComponent` para prevenir rotura de rutas HTTP con espacios y símbolos.
+  - En [`frontend/src/App.jsx`](./frontend/src/App.jsx), se agregó el reseteo de `e.target.value = ''` tras la subida de video para permitir re-selección del mismo archivo sin bloqueos.
+
 - **Verificación de Pruebas Automatizadas:**
   - Ejecución de la suite completa de pruebas unitarias (`backend/tests/`), validando 6/6 tests exitosos (cinemática 2D, filtrado Butterworth, ángulos articulares y exportación Kinovea KVA 2025.2).
 
 ### 3. Nota Técnica y Criterios Arquitectónicos (`mdmake`)
 
 > [!NOTE]
-> **Fundamentación del Parche de Socket Proactor en Windows:** En Python 3.10 bajo Windows, el bucle asíncrono `ProactorEventLoop` utiliza puertos de finalización de E/S (IOCP). Cuando un cliente HTTP cierra un socket antes de que el servidor termine de enviar un rango parcial de video (comportamiento estándar del buffering de Chromium y navegadores modernos), IOCP notifica la desconexión abrupta. `_call_connection_lost` intenta ejecutar `shutdown(socket.SHUT_RDWR)` en un socket ya invalidado por el sistema operativo, disparando `WinError 10054`. La envoltura defensiva con `try...except (ConnectionResetError, RuntimeError, OSError)` atrapa la condición de carrera a nivel de transporte, preservando una consola clínica limpia y silenciosa.
+> **Aislamiento de Rutas y Matching de Archivos en Disco:** En aplicaciones que ingieren archivos multimedia del usuario, nunca debe utilizarse `Path.glob()` con entradas arbitrarias de usuario porque los caracteres de control de globbing (`[`, `]`, `*`, `?`) alteran el patrón de búsqueda. La iteración directa con `folder.iterdir()` y comparación literal es inmune a fallos de sintaxis de archivo.
 
 > [!IMPORTANT]
 > **Autonomía Offline del Modelo Neuronal:** La inclusión de `yolov8n-pose.pt` en el empaquetado release garantiza que clínicas, consultorios deportivos o laboratorios docentes con conectividad a internet restringida puedan ejecutar el análisis biomecánico desde el primer minuto sin descargas satelitales obligatorias.
@@ -70,7 +85,8 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 ### 4. 📌 Pendientes y Próximos Pasos (Backlog)
 
 - [x] **Completado:** Incorporar `ultralytics` a `requirements.txt` y validar instalación automática en scripts batch.
-- [x] **Completado:** Parchear `WinError 10054` en transporte Proactor de asyncio en `main.py` y `desktop_app.py`.
+- [x] **Completado:** Corregir sintaxis batch de lanzadores y asegurar directorio de trabajo en VBScript.
+- [x] **Completado:** Reemplazar `glob` por búsqueda literal en `video_engine.py`, `routes_video.py` y `routes_tracking.py`.
 - [x] **Completado:** Asegurar inclusión de pesos `yolov8n-pose.pt` en la generación de release (`package_release.bat`).
 - [x] **Completado:** Verificación exitosa de la suite de pruebas unitarias backend (`6/6 passed`).
 - [ ] **Alta:** Re-generar paquete `release/KinePipe-MMA-v1.5.1-Windows.zip` y actualizar release en GitHub con los scripts corregidos.

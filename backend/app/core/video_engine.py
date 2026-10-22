@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 import uuid
 from .schemas import VideoMetadata, FrameData
+from .config import UPLOADS_DIR, SAMPLE_DIR
 
 # Standard 2D biomechanical skeleton connections
 SKELETON_BONES = [
@@ -59,6 +60,48 @@ def get_video_metadata(filepath: Path) -> VideoMetadata:
         duration_s=round(duration_s, 3),
         aspect_ratio=aspect_ratio
     )
+
+def find_video_path(video_id: str) -> Optional[Path]:
+    """
+    Safely locates a video file by video_id or filename prefix across UPLOADS_DIR and SAMPLE_DIR.
+    Uses literal string matching instead of glob to avoid syntax errors with brackets [],
+    parentheses (), and special characters.
+    """
+    clean_id = video_id.strip()
+    target_stem = Path(clean_id).stem
+    short_uuid = clean_id.split("_")[0] if "_" in clean_id else clean_id
+
+    for folder in [UPLOADS_DIR, SAMPLE_DIR]:
+        if not folder.exists():
+            continue
+        # Priority 1: Exact stem or filename match
+        for f in folder.iterdir():
+            if f.is_file() and f.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                if f.stem == clean_id or f.name == clean_id or f.stem == target_stem:
+                    return f
+
+        # Priority 2: Prefix match (e.g. video_id is uuid or starts with uuid)
+        for f in folder.iterdir():
+            if f.is_file() and f.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
+                if f.stem.startswith(clean_id) or f.name.startswith(clean_id) or (len(short_uuid) >= 6 and f.stem.startswith(short_uuid)):
+                    return f
+    return None
+
+def find_thumbnail_path(video_id: str) -> Optional[Path]:
+    clean_id = video_id.strip()
+    target_stem = Path(clean_id).stem
+    short_uuid = clean_id.split("_")[0] if "_" in clean_id else clean_id
+
+    for folder in [UPLOADS_DIR, SAMPLE_DIR]:
+        if not folder.exists():
+            continue
+        for f in folder.iterdir():
+            if f.is_file() and f.name.lower().endswith((".jpg", ".jpeg", ".png")):
+                if f.stem in [f"{clean_id}_thumb", f"{target_stem}_thumb", f"{short_uuid}_thumb", clean_id]:
+                    return f
+                if f.stem.startswith(f"{short_uuid}_thumb") or f.name.startswith(f"{short_uuid}_thumb"):
+                    return f
+    return None
 
 def extract_frame_image(filepath: Path, frame_index: int) -> Optional[np.ndarray]:
     """

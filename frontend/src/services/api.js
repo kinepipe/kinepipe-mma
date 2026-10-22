@@ -145,23 +145,23 @@ export async function embedAnalysisVideo(videoId, layout = 'bottom_bar') {
 }
 
 export function getVideoStreamUrl(videoId) {
-  return `${API_BASE}/video/${videoId}/stream`;
+  return `${API_BASE}/video/${encodeURIComponent(videoId)}/stream`;
 }
 
 export function getKvaExportUrl(videoId) {
-  return `${API_BASE}/kinovea/export/${videoId}`;
+  return `${API_BASE}/kinovea/export/${encodeURIComponent(videoId)}`;
 }
 
 export function getCsvExportUrl(videoId) {
-  return `${API_BASE}/export/csv/${videoId}`;
+  return `${API_BASE}/export/csv/${encodeURIComponent(videoId)}`;
 }
 
 export function getTrcExportUrl(videoId) {
-  return `${API_BASE}/export/trc/${videoId}`;
+  return `${API_BASE}/export/trc/${encodeURIComponent(videoId)}`;
 }
 
 export function getMotExportUrl(videoId) {
-  return `${API_BASE}/export/mot/${videoId}`;
+  return `${API_BASE}/export/mot/${encodeURIComponent(videoId)}`;
 }
 
 export function getOsimExportUrl(videoId) {
