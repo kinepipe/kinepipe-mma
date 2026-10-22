@@ -33,14 +33,14 @@ if not exist "frontend\dist\index.html" (
 )
 
 REM 3. Check if ultralytics is installed
-.venv\Scripts\python -c "import ultralytics" 2>nul
+.venv\Scripts\python.exe -c "import ultralytics" 2>nul
 if errorlevel 1 (
-    echo [INFO] Instalando motor de vision neuronal YOLOv8-pose (ultralytics)...
+    echo [INFO] Instalando motor de vision neuronal YOLOv8-pose ultralytics...
     where uv >nul 2>nul
     if not errorlevel 1 (
         uv pip install ultralytics --python .venv\Scripts\python.exe
     ) else (
-        .venv\Scripts\python -m pip install ultralytics
+        .venv\Scripts\python.exe -m pip install ultralytics
     )
 )
 
@@ -49,5 +49,5 @@ start "" cmd /c "timeout /t 2 /nobreak >nul && start http://127.0.0.1:8000"
 
 REM 5. Start FastAPI server
 echo [INFO] Iniciando KinePipe MMA en http://127.0.0.1:8000 ...
-.venv\Scripts\python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
+.venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
 pause
