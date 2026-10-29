@@ -39,6 +39,9 @@ copy "data\uploads\.gitkeep" "%STAGING%\data\uploads\" >nul 2>nul
 mkdir "%STAGING%\data\exports"
 copy "data\exports\.gitkeep" "%STAGING%\data\exports\" >nul 2>nul
 
+REM Clean bytecode and caches from staging
+for /d /r "%STAGING%\backend" %%d in (__pycache__ .pytest_cache) do @if exist "%%d" rd /s /q "%%d"
+
 copy "install.bat" "%STAGING%\" >nul
 copy "run_app.bat" "%STAGING%\" >nul
 copy "run_desktop.bat" "%STAGING%\" >nul
