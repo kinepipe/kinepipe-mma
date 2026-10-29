@@ -25,6 +25,22 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 
 ---
 
+## [2026-10-29] - KinePipe MMA v1.5.1: Distribución Instalable Autónoma (Zero-Node Offline) y Acceso Directo de Escritorio
+
+> [!SUMMARY]
+> **Síntesis Ejecutiva:** Inclusión del frontend React precompilado (`frontend/dist/`) directamente en el control de versiones Git para eliminar la dependencia de Node.js/npm durante la instalación en equipos de usuarios finales. Actualización de `install.bat` con generación automática de acceso directo en el Escritorio de Windows y verificación de pesos offline `yolov8n-pose.pt`. Generación del paquete portable listo para distribución `release/KinePipe-MMA-v1.5.1-Windows.zip` y sincronización con el tag Git oficial `v1.5.1`.
+
+### 1. Componentes y Artefactos Intervenidos
+
+| Componente / Módulo | Ruta Relativa | Tipo de Cambio | Impacto / Estado |
+| :--- | :--- | :--- | :--- |
+| **Frontend Compilado** | [`./frontend/dist/`](./frontend/dist/) | Agregado a Git | Permite ejecutar la aplicación inmediatamente tras clonar o descargar el repo sin requerir Node.js ni compilar con Vite. |
+| **Reglas Gitignore** | [`.gitignore`](./.gitignore) | Modificado | Se des-ignora `frontend/dist/` para que los artefactos de producción viajen con el código fuente. |
+| **Instalador de Windows** | [`./install.bat`](./install.bat) | Mejorado | Detecta frontend precompilado, verifica pesos offline y crea acceso directo en el Escritorio de Windows vía PowerShell WScript. |
+| **Empaquetador de Release** | [`./package_release.bat`](./package_release.bat) | Optimizado | Limpieza estricta de cachés `__pycache__`, compilación Vite y empaquetado ZIP en `release/KinePipe-MMA-v1.5.1-Windows.zip`. |
+
+---
+
 ## [2026-10-21] - KinePipe MMA v1.5.1: Hotfix de Portabilidad Multi-Equipo, Dependencia YOLOv8-pose y Parche Proactor Asyncio Windows (WinError 10054)
 
 > [!SUMMARY]
