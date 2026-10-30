@@ -2,7 +2,7 @@
 title: "Control de Cambios y Registro de Actividad: KinePipe MMA (Markless Motion Analyser)"
 document_type: "changelog"
 project_type: "software"
-last_updated: "2026-10-21"
+last_updated: "2026-10-29"
 version: "1.5.1"
 status: "activo"
 ---
@@ -25,19 +25,49 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 
 ---
 
-## [2026-10-29] - KinePipe MMA v1.5.1: Distribución Instalable Autónoma (Zero-Node Offline) y Acceso Directo de Escritorio
+## [2026-10-29] - KinePipe MMA v1.5.1: Publicación Oficial de GitHub Release Binaria Windows, Distribución Autónoma (Zero-Node Offline) y Acceso Directo
 
 > [!SUMMARY]
-> **Síntesis Ejecutiva:** Inclusión del frontend React precompilado (`frontend/dist/`) directamente en el control de versiones Git para eliminar la dependencia de Node.js/npm durante la instalación en equipos de usuarios finales. Actualización de `install.bat` con generación automática de acceso directo en el Escritorio de Windows y verificación de pesos offline `yolov8n-pose.pt`. Generación del paquete portable listo para distribución `release/KinePipe-MMA-v1.5.1-Windows.zip` y sincronización con el tag Git oficial `v1.5.1`.
+> **Síntesis Ejecutiva:** Publicación oficial de la Release **`v1.5.1`** (`Latest`) en GitHub ([`https://github.com/kinepipe/kinepipe-mma/releases/tag/v1.5.1`](https://github.com/kinepipe/kinepipe-mma/releases/tag/v1.5.1)) adjuntando como activos binarios el paquete autónomo de instalación/ejecución para Windows (`KinePipe-MMA-v1.5.1-Windows.zip` — 7.05 MB) y el instalador directo (`install.bat`). Se consolidó el frontend React precompilado (`frontend/dist/`), los pesos neurales (`yolov8n-pose.pt`) y la creación automática del acceso directo **`KinePipe MMA`** en el Escritorio de Windows.
 
 ### 1. Componentes y Artefactos Intervenidos
 
 | Componente / Módulo | Ruta Relativa | Tipo de Cambio | Impacto / Estado |
 | :--- | :--- | :--- | :--- |
-| **Frontend Compilado** | [`./frontend/dist/`](./frontend/dist/) | Agregado a Git | Permite ejecutar la aplicación inmediatamente tras clonar o descargar el repo sin requerir Node.js ni compilar con Vite. |
-| **Reglas Gitignore** | [`.gitignore`](./.gitignore) | Modificado | Se des-ignora `frontend/dist/` para que los artefactos de producción viajen con el código fuente. |
-| **Instalador de Windows** | [`./install.bat`](./install.bat) | Mejorado | Detecta frontend precompilado, verifica pesos offline y crea acceso directo en el Escritorio de Windows vía PowerShell WScript. |
+| **GitHub Release Oficial `v1.5.1`** | [`release/KinePipe-MMA-v1.5.1-Windows.zip`](./release/KinePipe-MMA-v1.5.1-Windows.zip) | Publicado en GitHub Releases | Activo binario `KinePipe-MMA-v1.5.1-Windows.zip` (7,046,084 bytes) e `install.bat` subidos vía GitHub Releases API (`ID: 428516506`, `Latest`). |
+| **Frontend Compilado** | [`./frontend/dist/`](./frontend/dist/) | Agregado a Git | Permite ejecutar la aplicación inmediatamente tras clonar o descargar el paquete sin requerir Node.js ni compilar con Vite. |
+| **Reglas Gitignore** | [`.gitignore`](./.gitignore) | Modificado | Se des-ignora `frontend/dist/` para que los artefactos estáticos de producción viajen con el repositorio y el release. |
+| **Instalador de Windows** | [`./install.bat`](./install.bat) | Mejorado y Publicado | Detecta frontend precompilado, verifica pesos offline (`yolov8n-pose.pt`), configura `.venv` y crea acceso directo en el Escritorio de Windows vía PowerShell `WScript.Shell`. |
 | **Empaquetador de Release** | [`./package_release.bat`](./package_release.bat) | Optimizado | Limpieza estricta de cachés `__pycache__`, compilación Vite y empaquetado ZIP en `release/KinePipe-MMA-v1.5.1-Windows.zip`. |
+
+### 2. Detalle de Realizaciones y Cambios
+
+- **Publicación de Release `v1.5.1` y Carga de Activos para Windows en GitHub:**
+  - Se detectó que el tag `v1.5.1` (`4189af3`) existía en el repositorio remoto, pero carecía de un objeto formal en **GitHub Releases** y del paquete binario instalable para Windows (por lo que en GitHub solo figuraba el código fuente autogenerado y la release previa `v1.5-Beta`).
+  - Se creó y publicó la Release oficial **`KinePipe MMA v1.5.1 - Instalador y Ejecutable Windows`** (`tag_name: v1.5.1`, marcada como `Latest`) mediante la API REST de GitHub (`/repos/kinepipe/kinepipe-mma/releases`).
+  - Se adjuntaron los dos activos de instalación/ejecución para Windows en `https://uploads.github.com`:
+    1. **`KinePipe-MMA-v1.5.1-Windows.zip` (7.05 MB):** Paquete completo listo para descomprimir y usar en Windows, conteniendo [`install.bat`](./install.bat), [`KinePipe-MMA.vbs`](./KinePipe-MMA.vbs), [`run_desktop.bat`](./run_desktop.bat), [`run_app.bat`](./run_app.bat), [`desktop_app.py`](./desktop_app.py), [`yolov8n-pose.pt`](./yolov8n-pose.pt), `frontend/dist/` y `backend/`.
+    2. **`install.bat` (2.67 KB):** Script de instalación directa y creación de acceso directo en el Escritorio de Windows.
+
+- **Arquitectura de Instalación y Ejecución Autónoma en Windows:**
+  - [`./install.bat`](./install.bat): Automatiza la creación del entorno virtual Python (`.venv`), instala dependencias desde [`./backend/requirements.txt`](./backend/requirements.txt), omite la compilación de Node.js cuando `frontend/dist/index.html` ya está presente y genera el acceso directo `KinePipe MMA.lnk` en el Escritorio apuntando a [`./KinePipe-MMA.vbs`](./KinePipe-MMA.vbs).
+
+### 3. Nota Técnica y Criterios Arquitectónicos (`mdmake`)
+
+> [!NOTE]
+> **Distribución Dual de Releases en GitHub (Tags Git vs Objetos GitHub Release):** En GitHub, empujar una etiqueta (`git push origin v1.5.1`) registra únicamente la referencia Git y expone los archivos `Source code (zip/tar.gz)` generados dinámicamente a partir del árbol del repositorio, los cuales excluyen artefactos ignorados en `.gitignore` como `release/*.zip`. Para que el usuario final disponga del paquete binario de instalación para Windows en la sección **Assets**, es indispensable crear la entidad Release en la API de GitHub (`/releases`) y subir explícitamente el binario multiparte a `uploads.github.com`.
+
+> [!IMPORTANT]
+> **Autonomía de Ejecución Zero-Node en Equipos Clínicos Windows:** El paquete `KinePipe-MMA-v1.5.1-Windows.zip` incorpora tanto el bundle estático de producción (`frontend/dist/`) como los pesos del modelo (`yolov8n-pose.pt`). Toda futura actualización de la interfaz en `frontend/src/` debe ir acompañada de la ejecución de `package_release.bat` antes de publicar una nueva versión en GitHub Releases.
+
+### 4. 📌 Pendientes y Próximos Pasos (Backlog)
+
+- [x] **Completado:** Re-generar paquete `release/KinePipe-MMA-v1.5.1-Windows.zip` con limpieza estricta de cachés bytecode y creación de acceso directo en `install.bat`.
+- [x] **Completado:** Publicar oficialmente la Release `v1.5.1` (`Latest`) en GitHub con `KinePipe-MMA-v1.5.1-Windows.zip` e `install.bat` adjuntos en la sección Assets.
+- [ ] **Alta:** Probar la instalación completa desde el ZIP descargado de GitHub Releases en un entorno Windows limpio sin internet para verificar la carga offline de `yolov8n-pose.pt`.
+- [ ] **Media:** Configuración de GitHub Actions (CI/CD) para auto-compilar y adjuntar el paquete `.zip` automáticamente al crear un nuevo tag `v*`.
+- [ ] **Media:** Generación de informe PDF clínico consolidado con los subpaneles cinemáticos seleccionados.
+- [ ] **Media:** Exportación e importación de curvas cinemáticas en formato estándar C3D.
 
 ---
 
