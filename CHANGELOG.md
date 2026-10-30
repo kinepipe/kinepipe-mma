@@ -105,7 +105,7 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 - [x] **Completado:** Reemplazar `glob` por búsqueda literal en `video_engine.py`, `routes_video.py` y `routes_tracking.py`.
 - [x] **Completado:** Asegurar inclusión de pesos `yolov8n-pose.pt` en la generación de release (`package_release.bat`).
 - [x] **Completado:** Re-generar paquete `release/KinePipe-MMA-v1.5.1-Windows.zip` con limpieza estricta de caches bytecode y creación de acceso directo en `install.bat`.
-- [ ] **Alta:** Publicar oficialmente la Release `v1.5.1` en GitHub con el archivo binario `KinePipe-MMA-v1.5.1-Windows.zip` adjunto.
+- [x] **Completado:** Publicar oficialmente la Release `v1.5.1` en GitHub (`https://github.com/kinepipe/kinepipe-mma/releases/tag/v1.5.1`) con los activos de instalación y ejecución en Windows (`KinePipe-MMA-v1.5.1-Windows.zip` e `install.bat`) adjuntos.
 - [ ] **Alta:** Probar la instalación completa en un entorno limpio sin internet para verificar la carga offline de los pesos de pose.
 - [ ] **Media:** Configuración de GitHub Actions (CI/CD) para auto-compilar el paquete `.zip` en cada nuevo tag de versión.
 - [ ] **Media:** Generación de informe PDF clínico consolidado con los subpaneles cinemáticos seleccionados.
