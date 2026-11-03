@@ -2,8 +2,8 @@
 title: "Control de Cambios y Registro de Actividad: KinePipe MMA (Markless Motion Analyser)"
 document_type: "changelog"
 project_type: "software"
-last_updated: "2026-10-29"
-version: "1.5.1"
+last_updated: "2026-11-03"
+version: "1.5.2"
 status: "activo"
 ---
 
@@ -22,6 +22,24 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 2. Resolver rutas relativas siempre a partir de la raíz de esta carpeta de trabajo (`./`).
 3. Al recibir una nueva instrucción en este directorio, consultar prioritariamente el último estado registrado en la sesión superior y el backlog activo.
 4. No alterar ni sobrescribir las notas técnicas históricas ya consolidadas en sesiones precedentes.
+
+---
+
+## [2026-11-03] - KinePipe MMA v1.5.2: Motor Universal de Video H.264 (FFmpeg Autocontenido), Verificador/Auto-Reparador de Entorno y Portabilidad Total Multi-PC
+
+> [!SUMMARY]
+> **Síntesis Ejecutiva:** Publicación de la versión **`v1.5.2`** que resuelve definitivamente los problemas de reproducción de video e instalación de librerías en computadores secundarios con Windows limpio: (1) Integración de **FFmpeg estático autocontenido** (`imageio-ffmpeg>=0.5.1`) para transcodificar automáticamente al vuelo cualquier video subido o exportado (`.mov` HEVC/H.265 de iPhone, `.avi`, `.mkv`, o `.mp4` con códec legacy `FMP4`/`mp4v`) hacia **MP4 H.264 universal (`libx264`, `yuv420p`, `+faststart`)** 100% compatible con Chromium/Edge WebView2 sin requerir códecs de la Microsoft Store; (2) Creación del verificador y auto-reparador [`verify_env.py`](./verify_env.py); y (3) Blindaje de [`install.bat`](./install.bat), [`run_desktop.bat`](./run_desktop.bat), [`run_app.bat`](./run_app.bat) y [`KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) con instalación automática de **Microsoft Visual C++ Redistributable 2015-2022**, **Python 3.10 aislado (`uv python install 3.10` + `--seed`)** y resolución de `PATH` en `%USERPROFILE%\.local\bin`.
+
+### 1. Componentes y Artefactos Intervenidos
+
+| Componente / Módulo | Ruta Relativa | Tipo de Cambio | Impacto / Estado |
+| :--- | :--- | :--- | :--- |
+| **Motor de Video Backend** | [`./backend/app/core/video_engine.py`](./backend/app/core/video_engine.py) | Mejorado | Nuevas funciones `transcode_to_h264_mp4()` y `ensure_browser_compatible_video()` con FFmpeg integrado (`imageio-ffmpeg`). |
+| **API de Video y Streaming** | [`./backend/app/api/routes_video.py`](./backend/app/api/routes_video.py) | Mejorado | Normalización automática a H.264 al subir, listar o transmitir (`/stream`) cualquier archivo de video. |
+| **Verificador y Auto-Reparador** | [`./verify_env.py`](./verify_env.py) | Nuevo | Diagnóstico explícito de Visual C++ Runtime, librerías Python, binario FFmpeg, pesos YOLOv8-pose y códec del video de muestra (`--auto-fix`). |
+| **Instalador de Windows** | [`./install.bat`](./install.bat) | Corregido | Añade `%USERPROFILE%\.local\bin` al `PATH`, instala Visual C++ Redistributable si falta, descarga Python 3.10 con `--seed` y ejecuta `verify_env.py`. |
+| **Lanzadores y Acceso Directo** | [`./run_desktop.bat`](./run_desktop.bat), [`./run_app.bat`](./run_app.bat), [`./KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) | Corregidos | Visibilidad de consola en primera instalación y eliminación de bloqueos invisibles en `pause`. |
+| **Video de Muestra H.264** | [`./data/sample/sample_cmj_jump.mp4`](./data/sample/sample_cmj_jump.mp4) | Recodificado | Convertido de códec `FMP4` (`mp4v`) a `H264` (`avc1`) para reproducción inmediata en cualquier navegador o WebView2. |
 
 ---
 

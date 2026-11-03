@@ -7,9 +7,36 @@ Author: Klgo. Felipe Vargas Ríos (@kinepipe)
 import sys
 import time
 import threading
+from functools import wraps
+import urllib.request
+
+def configurar_parche_asyncio_windows():
+    """
+    Silencia el error inofensivo [WinError 10054] en Python 3.10 bajo Windows
+    provocado cuando el reproductor de video HTML5 cancela peticiones 206 Partial Content.
+    """
+    if sys.platform == "win32":
+        try:
+            from asyncio.proactor_events import _ProactorBasePipeTransport
+            def _silenciar_reset_conexion(func):
+                @wraps(func)
+                def wrapper(self, *args, **kwargs):
+                    try:
+                        return func(self, *args, **kwargs)
+                    except (ConnectionResetError, RuntimeError, OSError):
+                        pass
+                return wrapper
+
+            _ProactorBasePipeTransport._call_connection_lost = _silenciar_reset_conexion(
+                _ProactorBasePipeTransport._call_connection_lost
+            )
+        except Exception:
+            pass
+
+configurar_parche_asyncio_windows()
+
 import uvicorn
 import webview
-import urllib.request
 
 HOST = "127.0.0.1"
 PORT = 8000
@@ -17,9 +44,10 @@ SERVER_URL = f"http://{HOST}:{PORT}"
 
 def start_backend():
     """Starts the FastAPI backend using uvicorn in a background thread."""
+    configurar_parche_asyncio_windows()
     uvicorn.run("backend.app.main:app", host=HOST, port=PORT, log_level="warning")
 
-def wait_for_server(timeout=15.0):
+def wait_for_server(timeout=20.0):
     """Waits until the backend server responds to HTTP requests."""
     start_time = time.time()
     while time.time() - start_time < timeout:

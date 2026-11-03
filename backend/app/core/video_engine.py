@@ -3,8 +3,123 @@ import numpy as np
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 import uuid
+import shutil
+import subprocess
 from .schemas import VideoMetadata, FrameData
 from .config import UPLOADS_DIR, SAMPLE_DIR
+
+def get_ffmpeg_exe() -> Optional[str]:
+    """
+    Returns path to bundled static FFmpeg binary via imageio-ffmpeg or system PATH.
+    Guarantees H.264 (avc1) video encoding/transcoding on any Windows PC without system codecs.
+    """
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return shutil.which("ffmpeg")
+
+def get_video_codec_name(filepath: Path) -> str:
+    """
+    Returns lowercase 4-char FourCC codec string (e.g. 'h264', 'avc1', 'fmp4', 'hevc').
+    """
+    cap = cv2.VideoCapture(str(filepath))
+    if not cap.isOpened():
+        return ""
+    fourcc = int(cap.get(cv2.CAP_PROP_FOURCC))
+    cap.release()
+    return "".join([chr((fourcc >> 8 * i) & 0xFF) for i in range(4)]).strip().lower()
+
+def transcode_to_h264_mp4(input_path: Path, output_path: Path) -> bool:
+    """
+    Transcodes any video (.mov, .mkv, .avi, HEVC/H.265, FMP4/mp4v) to a universal
+    HTML5-compatible H.264 MP4 (yuv420p, +faststart, even dimensions) using bundled FFmpeg.
+    """
+    ffmpeg_bin = get_ffmpeg_exe()
+    if not ffmpeg_bin or not input_path.exists():
+        return False
+
+    tmp_out = output_path.with_name(f"{output_path.stem}_h264_tmp.mp4")
+    cmd = [
+        ffmpeg_bin,
+        "-y",
+        "-i", str(input_path),
+        "-c:v", "libx264",
+        "-preset", "veryfast",
+        "-crf", "21",
+        "-pix_fmt", "yuv420p",
+        "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+        "-movflags", "+faststart",
+        "-c:a", "aac",
+        "-b:a", "128k",
+        str(tmp_out)
+    ]
+    try:
+        creationflags = subprocess.CREATE_NO_WINDOW if hasattr(subprocess, "CREATE_NO_WINDOW") else 0
+        res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, creationflags=creationflags)
+        if res.returncode != 0 or not tmp_out.exists() or tmp_out.stat().st_size == 0:
+            # Retry without audio stream in case input has no audio or incompatible audio
+            cmd_no_audio = [
+                ffmpeg_bin,
+                "-y",
+                "-i", str(input_path),
+                "-c:v", "libx264",
+                "-preset", "veryfast",
+                "-crf", "21",
+                "-pix_fmt", "yuv420p",
+                "-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2",
+                "-movflags", "+faststart",
+                "-an",
+                str(tmp_out)
+            ]
+            res = subprocess.run(cmd_no_audio, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=180, creationflags=creationflags)
+
+        if res.returncode == 0 and tmp_out.exists() and tmp_out.stat().st_size > 0:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(tmp_out), str(output_path))
+            return True
+    except Exception as e:
+        print(f"[video_engine] Error transcoding {input_path} to H.264: {e}")
+    finally:
+        if tmp_out.exists():
+            try:
+                tmp_out.unlink()
+            except Exception:
+                pass
+    return False
+
+def ensure_browser_compatible_video(filepath: Path) -> Path:
+    """
+    Ensures the video file is encoded in universal H.264 (.mp4) so HTML5 <video>
+    in Edge WebView2 / Chrome and OpenCV work identically on any Windows PC
+    even without HEVC or MPEG-4 Part 2 Windows Store extensions.
+    """
+    if not filepath or not filepath.exists():
+        return filepath
+
+    ext = filepath.suffix.lower()
+    codec = get_video_codec_name(filepath)
+
+    # Already standard browser-compatible H.264 MP4
+    if ext == ".mp4" and codec in ["h264", "avc1", "x264"]:
+        return filepath
+
+    target_mp4 = filepath.with_suffix(".mp4")
+    # If a converted .mp4 already exists and is H.264, use it
+    if target_mp4 != filepath and target_mp4.exists():
+        if get_video_codec_name(target_mp4) in ["h264", "avc1", "x264"]:
+            return target_mp4
+
+    if transcode_to_h264_mp4(filepath, target_mp4):
+        # If input had a different extension (.mov, .avi, .mkv), remove original to avoid duplicates in list
+        if target_mp4 != filepath and filepath.exists():
+            try:
+                filepath.unlink()
+            except Exception:
+                pass
+        return target_mp4
+
+    return filepath
 
 # Standard 2D biomechanical skeleton connections
 SKELETON_BONES = [
@@ -338,6 +453,7 @@ def render_annotated_video(
 
     cap.release()
     out.release()
+    transcode_to_h264_mp4(output_video_path, output_video_path)
     return True
 
 def generate_sample_biomechanical_video(output_path: Path, duration_s: float = 3.0, fps: float = 30.0) -> bool:
@@ -485,4 +601,5 @@ def generate_sample_biomechanical_video(output_path: Path, duration_s: float = 3
         out.write(frame)
 
     out.release()
+    transcode_to_h264_mp4(output_path, output_path)
     return True

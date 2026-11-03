@@ -412,6 +412,14 @@ export default function VideoStage({
     };
   }, [renderCanvasWithTime]);
 
+  // Reload HTML5 video element cleanly whenever videoUrl changes
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video && videoUrl) {
+      video.load();
+    }
+  }, [videoUrl, videoRef]);
+
   // Redraw immediately when paused, scrubbing, or when tools change
   useEffect(() => {
     const video = videoRef.current;
@@ -447,7 +455,10 @@ export default function VideoStage({
         <video
           ref={videoRef}
           src={videoUrl}
+          preload="auto"
+          crossOrigin="anonymous"
           playsInline
+          onLoadedMetadata={() => renderCanvasWithTime(0)}
           className="max-h-[68vh] max-w-full rounded-lg shadow-2xl block"
         />
         <canvas

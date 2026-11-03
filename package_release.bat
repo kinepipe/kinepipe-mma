@@ -2,7 +2,7 @@
 title Empaquetador de Release - KinePipe MMA
 cd /d "%~dp0"
 
-set "VERSION=v1.5.1"
+set "VERSION=v1.5.2"
 
 echo =========================================================
 echo    EMPAQUETADOR DE RELEASE: KINEPIPE MMA %VERSION%
@@ -30,7 +30,7 @@ mkdir "release\KinePipe-MMA-%VERSION%"
 set "STAGING=release\KinePipe-MMA-%VERSION%"
 
 REM 3. Copy required clean assets
-echo [3/4] Copiando codigo fuente, frontend compilado y scripts...
+echo [3/4] Copiando codigo fuente, frontend compilado, verificador y scripts...
 xcopy /E /I /Q /Y "backend" "%STAGING%\backend"
 xcopy /E /I /Q /Y "frontend\dist" "%STAGING%\frontend\dist"
 xcopy /E /I /Q /Y "data\sample" "%STAGING%\data\sample"
@@ -47,6 +47,7 @@ copy "run_app.bat" "%STAGING%\" >nul
 copy "run_desktop.bat" "%STAGING%\" >nul
 copy "KinePipe-MMA.vbs" "%STAGING%\" >nul
 copy "desktop_app.py" "%STAGING%\" >nul
+copy "verify_env.py" "%STAGING%\" >nul
 if exist "yolov8n-pose.pt" copy "yolov8n-pose.pt" "%STAGING%\" >nul
 copy "README.md" "%STAGING%\" >nul
 copy "LICENSE" "%STAGING%\" >nul

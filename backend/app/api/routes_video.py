@@ -14,7 +14,8 @@ from ..core.video_engine import (
     generate_sample_biomechanical_video,
     extract_frame_image,
     find_video_path,
-    find_thumbnail_path
+    find_thumbnail_path,
+    ensure_browser_compatible_video
 )
 
 router = APIRouter(prefix="/api/video", tags=["video"])
@@ -22,11 +23,12 @@ router = APIRouter(prefix="/api/video", tags=["video"])
 @router.post("/upload", response_model=VideoMetadata)
 async def upload_video(file: UploadFile = File(...)):
     """
-    Uploads a video, calculates its technical metadata and generates a thumbnail.
+    Uploads a video, normalizes it to universal H.264 MP4 for cross-PC compatibility,
+    calculates its technical metadata and generates a thumbnail.
     """
     ext = Path(file.filename).suffix.lower()
     if ext not in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
-        raise HTTPException(status_code=400, detail="Formato de video no soportado. Use MP4, MOV o AVI.")
+        raise HTTPException(status_code=400, detail="Formato de video no soportado. Use MP4, MOV, AVI, MKV o WEBM.")
 
     video_id = str(uuid.uuid4())[:8]
     clean_name = Path(file.filename).name
@@ -35,6 +37,9 @@ async def upload_video(file: UploadFile = File(...)):
 
     with open(target_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+
+    # Automatically transcode HEVC/.mov/.avi/.mkv/FMP4 to universal H.264 MP4
+    target_path = ensure_browser_compatible_video(target_path)
 
     metadata = get_video_metadata(target_path)
     
@@ -53,6 +58,8 @@ def get_or_create_sample_video():
     sample_path = SAMPLE_DIR / "sample_cmj_jump.mp4"
     if not sample_path.exists():
         generate_sample_biomechanical_video(sample_path, duration_s=3.0, fps=30.0)
+    else:
+        sample_path = ensure_browser_compatible_video(sample_path)
 
     metadata = get_video_metadata(sample_path)
     
@@ -68,9 +75,13 @@ def list_videos():
     """
     Lists all available videos in uploads and sample directories.
     """
+    sample_path = SAMPLE_DIR / "sample_cmj_jump.mp4"
+    if not sample_path.exists():
+        generate_sample_biomechanical_video(sample_path, duration_s=3.0, fps=30.0)
+
     videos = []
     for f in list(UPLOADS_DIR.iterdir()) + list(SAMPLE_DIR.iterdir()):
-        if f.suffix.lower() in [".mp4", ".mov", ".avi", ".webm"]:
+        if f.is_file() and f.suffix.lower() in [".mp4", ".mov", ".avi", ".mkv", ".webm"]:
             try:
                 videos.append(get_video_metadata(f))
             except Exception:
@@ -80,15 +91,19 @@ def list_videos():
 @router.get("/{video_id}/stream")
 def stream_video(video_id: str):
     """
-    Serves the video file for HTML5 video playback.
+    Serves the video file for HTML5 video playback, ensuring H.264 compatibility.
     """
     video_path = find_video_path(video_id)
     if not video_path or not video_path.exists():
         if video_id in ["sample", "sample_cmj_jump"]:
             sample_path = SAMPLE_DIR / "sample_cmj_jump.mp4"
             if sample_path.exists():
+                sample_path = ensure_browser_compatible_video(sample_path)
                 return FileResponse(str(sample_path), media_type="video/mp4")
         raise HTTPException(status_code=404, detail=f"Video no encontrado: {video_id}")
+
+    # Guarantee browser-compatible H.264 stream on any Windows PC
+    video_path = ensure_browser_compatible_video(video_path)
 
     media_type = "video/mp4"
     if video_path.suffix.lower() in [".mov"]:

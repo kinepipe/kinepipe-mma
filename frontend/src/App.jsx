@@ -88,12 +88,19 @@ export default function App() {
       .catch((err) => console.error('Error fetching models:', err));
 
     getVideoList()
-      .then((videos) => {
-        setVideoList(videos);
+      .then(async (videos) => {
         if (videos && videos.length > 0) {
-          // Prefer Valeria or Treadmill if available, else first
-          const defaultVid = videos.find((v) => v.filename.toLowerCase().includes('valeria')) || videos[0];
+          setVideoList(videos);
+          // Prefer Valeria or Treadmill if available, else sample_cmj_jump, else first
+          const defaultVid =
+            videos.find((v) => v.filename.toLowerCase().includes('valeria')) ||
+            videos.find((v) => v.filename.toLowerCase().includes('sample_cmj')) ||
+            videos[0];
           setMetadata(defaultVid);
+        } else {
+          const sampleMeta = await loadSampleVideo();
+          setVideoList([sampleMeta]);
+          setMetadata(sampleMeta);
         }
       })
       .catch((err) => console.error('Error listing videos:', err));
