@@ -40,6 +40,33 @@ Entorno activo: `e:/DEVELOPER/HUMAN POSE`
 | **Instalador de Windows** | [`./install.bat`](./install.bat) | Corregido | Añade `%USERPROFILE%\.local\bin` al `PATH`, instala Visual C++ Redistributable si falta, descarga Python 3.10 con `--seed` y ejecuta `verify_env.py`. |
 | **Lanzadores y Acceso Directo** | [`./run_desktop.bat`](./run_desktop.bat), [`./run_app.bat`](./run_app.bat), [`./KinePipe-MMA.vbs`](./KinePipe-MMA.vbs) | Corregidos | Visibilidad de consola en primera instalación y eliminación de bloqueos invisibles en `pause`. |
 | **Video de Muestra H.264** | [`./data/sample/sample_cmj_jump.mp4`](./data/sample/sample_cmj_jump.mp4) | Recodificado | Convertido de códec `FMP4` (`mp4v`) a `H264` (`avc1`) para reproducción inmediata en cualquier navegador o WebView2. |
+| **GitHub Release Oficial `v1.5.2`** | [`./release/KinePipe-MMA-v1.5.2-Windows.zip`](./release/KinePipe-MMA-v1.5.2-Windows.zip) | Publicado en GitHub Releases | Publicado en `https://github.com/kinepipe/kinepipe-mma/releases/tag/v1.5.2` (`ID: 432751525`, `Latest`) con `KinePipe-MMA-v1.5.2-Windows.zip`, `install.bat` y `verify_env.py`. |
+
+### 2. Detalle de Realizaciones y Cambios
+
+- **Motor Universal de Transcodificación de Video H.264 (`imageio-ffmpeg`):**
+  - [`./backend/app/core/video_engine.py`](./backend/app/core/video_engine.py): Se implementaron `get_ffmpeg_exe()`, `get_video_codec_name()`, `transcode_to_h264_mp4()` y `ensure_browser_compatible_video()`. Todo video generado por OpenCV (`mp4v`/`FMP4`) o subido desde dispositivos móviles (`.mov` HEVC/H.265, `.avi`, `.mkv`) se convierte automáticamente a MP4 H.264 (`libx264`, `-pix_fmt yuv420p`, `-movflags +faststart`, dimensiones pares).
+  - [`./backend/app/api/routes_video.py`](./backend/app/api/routes_video.py): Se integró `ensure_browser_compatible_video()` en `/upload`, `/sample`, `/list` y `/{video_id}/stream`.
+- **Verificador y Auto-Reparador de Entorno (`verify_env.py`):**
+  - [`./verify_env.py`](./verify_env.py): Verifica secuencialmente las DLLs nativas de Visual C++ (`vcruntime140.dll`, `msvcp140.dll`), las 12 librerías críticas del backend, el binario estático de FFmpeg, los pesos `yolov8n-pose.pt` y el códec H.264 del video de muestra, auto-instalando paquetes faltantes cuando se invoca con `--auto-fix`.
+- **Blindaje del Instalador y Scripts de Arranque en Equipos Limpios:**
+  - [`./install.bat`](./install.bat), [`./run_desktop.bat`](./run_desktop.bat), [`./run_app.bat`](./run_app.bat) y [`./KinePipe-MMA.vbs`](./KinePipe-MMA.vbs): Se corrigió la ruta de instalación de `uv` (`%USERPROFILE%\.local\bin`), se automatizó la descarga e instalación de `vc_redist.x64.exe` cuando falta `vcruntime140_1.dll`, se habilitó la descarga automática de Python 3.10 aislado (`uv python install 3.10` y `uv venv .venv --python 3.10 --seed`) y se eliminaron los bloqueos por `pause` en ventanas ocultas.
+
+### 3. Nota Técnica y Criterios Arquitectónicos (`mdmake`)
+
+> [!NOTE]
+> **Incompatibilidad de `mp4v` (`FMP4`) y `HEVC` con Reproductores HTML5 / Edge WebView2 en Windows Estándar:** OpenCV en Windows codifica por defecto con `cv2.VideoWriter_fourcc(*'mp4v')` (MPEG-4 Part 2), un códec legado que el elemento `<video>` de Chromium/WebView2 no decodifica sin extensiones del sistema. Asimismo, los videos `.mov` de iPhone emplean HEVC (H.265), cuya extensión no viene preinstalada en equipos Windows de estudiantes o laboratorio. Empaquetar `imageio-ffmpeg` provee un binario estático de `ffmpeg` dentro de `.venv` que garantiza conversión transparente a `H.264 (avc1)` sin depender de códecs del sistema operativo.
+
+> [!IMPORTANT]
+> **Codificación ASCII + CRLF en Scripts Batch de Windows (`.bat`):** El intérprete `cmd.exe` de Windows calcula desplazamientos de línea en bytes al ejecutar archivos `.bat`. Para evitar errores de truncamiento de comandos al cambiar páginas de códigos, los scripts `.bat` y `.vbs` deben conservarse en ASCII puro con saltos de línea `CRLF` (`\r\n`), delegando los mensajes con tildes y diagnóstico UTF-8 al script de Python [`./verify_env.py`](./verify_env.py).
+
+### 4. 📌 Pendientes y Próximos Pasos (Backlog)
+
+- [x] **Completado:** Integrar `imageio-ffmpeg` y transcodificación automática a H.264 para videos `.mov` (HEVC), `.avi`, `.mkv` y `FMP4`.
+- [x] **Completado:** Crear verificador [`./verify_env.py`](./verify_env.py) y blindar [`./install.bat`](./install.bat) para PCs sin Python ni Visual C++ Redistributable.
+- [x] **Completado:** Publicar Release `v1.5.2` (`Latest`) en GitHub con `KinePipe-MMA-v1.5.2-Windows.zip`, `install.bat` y `verify_env.py`.
+- [ ] **Media:** Configuración de GitHub Actions (CI/CD) para auto-compilar y adjuntar el paquete `.zip` al crear un nuevo tag `v*`.
+- [ ] **Media:** Generación de informe PDF clínico consolidado con subpaneles cinemáticos seleccionados.
 
 ---
 
