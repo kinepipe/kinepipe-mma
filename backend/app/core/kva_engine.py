@@ -87,8 +87,10 @@ def export_to_kva(session: AnalysisSessionData) -> str:
             comment_parts.append(f"Ángulos: {angles_str}")
         full_comment = " - ".join(comment_parts) if comment_parts else kf.title
         
-        # Kinovea reads <Comment> natively in the Keyframes panel
-        ET.SubElement(kf_elem, "Comment").text = full_comment
+        # Kinovea 2025.2 requires RTF format inside <Comment> (TextHelper.GetText sets RichTextBox.Rtf)
+        rtf_escaped = full_comment.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}")
+        rtf_body = "".join(f"\\u{ord(ch)}?" if ord(ch) > 127 else ch for ch in rtf_escaped)
+        ET.SubElement(kf_elem, "Comment").text = f"{{\\rtf1\\ansi\\deff0{{\\fonttbl{{\\f0 Segoe UI;}}}}\\f0\\fs18 {rtf_body}\\par}}"
         
         # Safe empty Drawings container so WinForms drawing deserializer never throws
         ET.SubElement(kf_elem, "Drawings")

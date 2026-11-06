@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KinoveaPostureTool>
+  <FormatVersion>1.1</FormatVersion>
+  <Id>88b41c20-9a5e-4f12-b831-91f2a3d4e501</Id>
+  <Name>KinePipeModel</Name>
+  <DisplayName>KinePipe MMA Biomechanical Model (14-Pt + CoM + Angles)</DisplayName>
+  <Icon>running_16</Icon>
+  <!-- 14 Standardized Anatomical Landmarks (Bilateral Color Opposition: Right=#00E5FF Cyan, Left=#FF9100 Orange, Axial=#00FF88 Emerald) -->
+  <Points>
+    <Point name="nose" value="350;90" color="#00FF88" />
+    <Point name="neck" value="350;140" color="#00FF88" />
+    <Point name="right_shoulder" value="310;150" color="#00E5FF" />
+    <Point name="left_shoulder" value="390;150" color="#FF9100" />
+    <Point name="right_elbow" value="285;225" color="#00E5FF" />
+    <Point name="left_elbow" value="415;225" color="#FF9100" />
+    <Point name="right_wrist" value="270;295" color="#00E5FF" />
+    <Point name="left_wrist" value="430;295" color="#FF9100" />
+    <Point name="right_hip" value="325;290" color="#00E5FF" />
+    <Point name="left_hip" value="375;290" color="#FF9100" />
+    <Point name="right_knee" value="320;405" color="#00E5FF" />
+    <Point name="left_knee" value="380;405" color="#FF9100" />
+    <Point name="right_ankle" value="315;515" color="#00E5FF" />
+    <Point name="left_ankle" value="385;515" color="#FF9100" />
+  </Points>
+  <Segments>
+    <Segment name="HeadNeck" point1="0" point2="1" style="Solid" width="3" color="#00FF88" />
+    <Segment name="RClavicle" point1="1" point2="2" style="Solid" width="3" color="#00E5FF" />
+    <Segment name="LClavicle" point1="1" point2="3" style="Solid" width="3" color="#FF9100" />
+    <Segment name="RUpperArm" point1="2" point2="4" style="Solid" width="3" color="#00E5FF" />
+    <Segment name="RForearm" point1="4" point2="6" style="Solid" width="3" color="#00E5FF" />
+    <Segment name="LUpperArm" point1="3" point2="5" style="Solid" width="3" color="#FF9100" />
+    <Segment name="LForearm" point1="5" point2="7" style="Solid" width="3" color="#FF9100" />
+    <Segment name="RTrunk" point1="2" point2="8" style="Solid" width="3" color="#00FF88" />
+    <Segment name="LTrunk" point1="3" point2="9" style="Solid" width="3" color="#00FF88" />
+    <Segment name="Pelvis" point1="8" point2="9" style="Solid" width="3" color="#00FF88" />
+    <Segment name="RThigh" point1="8" point2="10" style="Solid" width="3" color="#00E5FF" />
+    <Segment name="RShank" point1="10" point2="12" style="Solid" width="3" color="#00E5FF" />
+    <Segment name="LThigh" point1="9" point2="11" style="Solid" width="3" color="#FF9100" />
+    <Segment name="LShank" point1="11" point2="13" style="Solid" width="3" color="#FF9100" />
+  </Segments>
+  <Angles>
+    <Angle name="Knee Right" origin="10" leg1="8" leg2="12" signed="false" ccw="true" supplementary="false" radius="35" color="#00E5FF" optionGroup="Display knee angles" />
+    <Angle name="Knee Left" origin="11" leg1="9" leg2="13" signed="false" ccw="false" supplementary="false" radius="35" color="#FF9100" optionGroup="Display knee angles" />
+    <Angle name="Hip Right" origin="8" leg1="2" leg2="10" signed="false" ccw="false" supplementary="false" radius="30" color="#00E5FF" optionGroup="Display hip angles" />
+    <Angle name="Hip Left" origin="9" leg1="3" leg2="11" signed="false" ccw="true" supplementary="false" radius="30" color="#FF9100" optionGroup="Display hip angles" />
+    <Angle name="Elbow Right" origin="4" leg1="2" leg2="6" signed="false" ccw="true" supplementary="false" radius="25" color="#00E5FF" optionGroup="Display elbow angles" />
+    <Angle name="Elbow Left" origin="5" leg1="3" leg2="7" signed="false" ccw="false" supplementary="false" radius="25" color="#FF9100" optionGroup="Display elbow angles" />
+  </Angles>
+  <Handles>
+    <Handle type="Point" name="nose" reference="0" color="#00FF88" trackable="true" />
+    <Handle type="Point" name="neck" reference="1" color="#00FF88" trackable="true" />
+    <Handle type="Point" name="right_shoulder" reference="2" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_shoulder" reference="3" color="#FF9100" trackable="true" />
+    <Handle type="Point" name="right_elbow" reference="4" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_elbow" reference="5" color="#FF9100" trackable="true" />
+    <Handle type="Point" name="right_wrist" reference="6" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_wrist" reference="7" color="#FF9100" trackable="true" />
+    <Handle type="Point" name="right_hip" reference="8" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_hip" reference="9" color="#FF9100" trackable="true" />
+    <Handle type="Point" name="right_knee" reference="10" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_knee" reference="11" color="#FF9100" trackable="true" />
+    <Handle type="Point" name="right_ankle" reference="12" color="#00E5FF" trackable="true" />
+    <Handle type="Point" name="left_ankle" reference="13" color="#FF9100" trackable="true" />
+  </Handles>
+  <HitZone>
+    <Polygon points="2;3;9;8" />
+  </HitZone>
+  <Capabilities flipHorizontal="true" flipVertical="true" />
+  <Positions>
+    <Position point="$0" color="#00FF88" symbol="CoM" optionGroup="Display Center of Mass (de Leva 1996)" />
+  </Positions>
+  <ComputedPoints>
+    <ComputedPoint name="Center of mass" color="#00FF88">
+      <ComputedPoint name="Head" weight="0.0681">
+        <ReferencePoint ref="0" weight="0.5" />
+        <ReferencePoint ref="1" weight="0.5" />
+      </ComputedPoint>
+      <ComputedPoint name="Trunk" weight="0.4346">
+        <ReferencePoint ref="1" weight="0.44" />
+        <ComputedPoint name="MidHip" weight="0.56">
+          <ReferencePoint ref="8" weight="0.5" />
+          <ReferencePoint ref="9" weight="0.5" />
+        </ComputedPoint>
+      </ComputedPoint>
+      <ComputedPoint name="Right upper arm" weight="0.0271">
+        <ReferencePoint ref="2" weight="0.56" />
+        <ReferencePoint ref="4" weight="0.44" />
+      </ComputedPoint>
+      <ComputedPoint name="Left upper arm" weight="0.0271">
+        <ReferencePoint ref="3" weight="0.56" />
+        <ReferencePoint ref="5" weight="0.44" />
+      </ComputedPoint>
+      <ComputedPoint name="Right forearm" weight="0.0223">
+        <ReferencePoint ref="4" weight="0.57" />
+        <ReferencePoint ref="6" weight="0.43" />
+      </ComputedPoint>
+      <ComputedPoint name="Left forearm" weight="0.0223">
+        <ReferencePoint ref="5" weight="0.57" />
+        <ReferencePoint ref="7" weight="0.43" />
+      </ComputedPoint>
+      <ComputedPoint name="Right thigh" weight="0.1416">
+        <ReferencePoint ref="8" weight="0.57" />
+        <ReferencePoint ref="10" weight="0.43" />
+      </ComputedPoint>
+      <ComputedPoint name="Left thigh" weight="0.1416">
+        <ReferencePoint ref="9" weight="0.57" />
+        <ReferencePoint ref="11" weight="0.43" />
+      </ComputedPoint>
+      <ComputedPoint name="Right shank" weight="0.0570">
+        <ReferencePoint ref="10" weight="0.57" />
+        <ReferencePoint ref="12" weight="0.43" />
+      </ComputedPoint>
+      <ComputedPoint name="Left shank" weight="0.0570">
+        <ReferencePoint ref="11" weight="0.57" />
+        <ReferencePoint ref="13" weight="0.43" />
+      </ComputedPoint>
+    </ComputedPoint>
+  </ComputedPoints>
+</KinoveaPostureTool>
+
